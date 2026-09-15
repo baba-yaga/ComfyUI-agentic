@@ -7,9 +7,9 @@ set "ROOT=%~dp0"
 set "COMFY_PORT=8189"
 set "CDP_PORT=9223"
 set "COMFY_URL=http://127.0.0.1:%COMFY_PORT%"
-set "CHROME_PROFILE=%ROOT%.comfyui-agentic-chrome-profile"
+set "CHROME_PROFILE=%ROOT%.codex-chrome-profile"
 set "ROOT_URL=%ROOT:\=/%"
-set "AGENTIC_DATABASE_URL=sqlite:///%ROOT_URL%ComfyUI/user/comfyui-agentic-%COMFY_PORT%.db"
+set "CODEX_DATABASE_URL=sqlite:///%ROOT_URL%ComfyUI/user/comfyui-codex-%COMFY_PORT%.db"
 
 if not exist "%ROOT%python_embeded\python.exe" (
     echo ERROR: Portable Python was not found: "%ROOT%python_embeded\python.exe"

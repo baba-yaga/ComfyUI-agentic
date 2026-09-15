@@ -12,7 +12,7 @@ The launcher starts ComfyUI and a separate Chrome profile with Chrome DevTools P
 - Codex in VS Code or another Codex environment with terminal access.
 - Permission to use local ports `8189` (ComfyUI) and `9223` (CDP). Change both consistently if either is already in use.
 
-## Expected directory structure
+## Standard installation layout
 
 Copy this repository's files into the root of a duplicate or experimental portable ComfyUI installation:
 
@@ -34,6 +34,26 @@ ComfyUI_windows_portable/
 
 Do not copy the BAT files to the Desktop. Create a desktop shortcut to `run_comfyui_cdp.bat` instead: the launcher resolves paths from the directory where it is stored.
 
+## Developing the companion alongside ComfyUI
+
+Keep this repository outside the portable installation and use NTFS hard links for its five runtime files. This makes the repository the single source of truth while the portable installation uses the exact same files. Hard links work only when both folders are on the same NTFS volume; they do not require Chrome Developer Mode or administrator rights.
+
+For example, a local experimental installation can retain its existing launcher names as hard links, and also needs a `run_comfyui_cdp_server.bat` hard link because the shared main launcher calls that name:
+
+```text
+ComfyUI-agentic/                         # Git repository
+experimental/                            # portable ComfyUI installation
+|-- run_comfyui_experimental_cdp.bat     # hard link to ../ComfyUI-agentic/run_comfyui_cdp.bat
+|-- run_comfyui_experimental_cdp_server.bat
+|-- run_comfyui_cdp_server.bat           # hard link to the shared server launcher
+|-- AGENTS.md
+`-- tools/
+    |-- Invoke-CdpEvaluate.ps1
+    `-- comfy_chrome_mcp.py
+```
+
+Edit the file from either path, then commit and push from `ComfyUI-agentic`. Do not replace a hard link with a copied file: check it first with `fsutil hardlink list path\\to\\file`.
+
 ## Start
 
 1. Open the portable ComfyUI root above as the workspace root in VS Code/Codex.
@@ -46,7 +66,7 @@ For ordinary use, do not run `run_comfyui_cdp_server.bat` directly. It is the se
 ## Safety model
 
 - CDP is bound to `127.0.0.1`, so it is not reachable from another device on the network.
-- The launcher uses a separate Chrome profile named `.comfyui-agentic-chrome-profile`; it must not be used to control personal Chrome tabs.
+- The launcher uses a separate Chrome profile named `.codex-chrome-profile`; it must not be used to control personal Chrome tabs.
 - A Codex agent should inspect before editing and should change nodes, prompts, models, inputs, or queue a generation only after an explicit user request.
 - Keep a separate experimental ComfyUI copy for agentic experiments. Save useful workflows under a clear name before moving them to a production installation.
 

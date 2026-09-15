@@ -1,4 +1,4 @@
-.comfyui-agentic-chrome-profile/
-ComfyUI/user/comfyui-agentic-*.db
-ComfyUI/user/comfyui-agentic-*.db-*
+.codex-chrome-profile/
+ComfyUI/user/comfyui-codex-*.db
+ComfyUI/user/comfyui-codex-*.db-*
 __pycache__/
