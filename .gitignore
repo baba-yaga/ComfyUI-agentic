@@ -2,3 +2,4 @@
 ComfyUI/user/comfyui-codex-*.db
 ComfyUI/user/comfyui-codex-*.db-*
 __pycache__/
+assets/*.psd
