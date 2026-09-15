@@ -54,6 +54,13 @@ experimental/                            # portable ComfyUI installation
 
 Edit the file from either path, then commit and push from `ComfyUI-agentic`. Do not replace a hard link with a copied file: check it first with `fsutil hardlink list path\\to\\file`.
 
+Git can replace a file during `pull`, which breaks a hard link even though both copies still look correct. After pulling changes made on another machine, restore the links with the included script. Preview first with `-WhatIf`:
+
+```powershell
+.\tools\Repair-PortableLinks.ps1 -ComfyRoot D:\AI\ComfyUI\0.35.0\experimental -LegacyExperimentalNames -WhatIf
+.\tools\Repair-PortableLinks.ps1 -ComfyRoot D:\AI\ComfyUI\0.35.0\experimental -LegacyExperimentalNames
+```
+
 ## Start
 
 1. Open the portable ComfyUI root above as the workspace root in VS Code/Codex.
