@@ -27,6 +27,8 @@ ComfyUI_windows_portable/
 |-- run_comfyui_cdp.bat
 |-- run_comfyui_cdp_server.bat
 |-- AGENTS.md
+|-- assets/
+|   `-- comfyui-agentic-icon.ico
 `-- tools/
     |-- Invoke-CdpEvaluate.ps1
     `-- comfy_chrome_mcp.py
@@ -70,10 +72,15 @@ Git can replace a file during `pull`, which breaks a hard link even though both 
 
 For ordinary use, do not run `run_comfyui_cdp_server.bat` directly. It is the server process launched by the main BAT.
 
+## Optional Desktop shortcut icon
+
+`assets/comfyui-agentic-icon.ico` is a transparent, multi-size Windows icon for a shortcut to the main BAT. Create the shortcut, open **Properties**, choose **Change Icon**, and select this file. Keep the ICO at that location: a Windows shortcut stores an absolute icon path.
+
 ## Safety model
 
 - CDP is bound to `127.0.0.1`, so it is not reachable from another device on the network.
 - The launcher uses a separate Chrome profile named `.codex-chrome-profile`; it must not be used to control personal Chrome tabs.
+- On a cold start, the launcher removes only the saved tabs and windows of that separate profile. This avoids Chrome recovering an earlier agentic session; it does not affect ordinary Chrome, passwords, bookmarks, history, ComfyUI workflows, or generated images.
 - A Codex agent should inspect before editing and should change nodes, prompts, models, inputs, or queue a generation only after an explicit user request.
 - Keep a separate experimental ComfyUI copy for agentic experiments. Save useful workflows under a clear name before moving them to a production installation.
 

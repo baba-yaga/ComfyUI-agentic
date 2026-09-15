@@ -34,7 +34,14 @@ if not "%COMFY_READY%"=="0" if errorlevel 1 exit /b 1
 powershell.exe -NoProfile -Command "try { $tabs = @(Invoke-RestMethod -Uri 'http://127.0.0.1:%CDP_PORT%/json/list' -TimeoutSec 2); if (@($tabs | Where-Object { $_.type -eq 'page' -and $_.url -like '%COMFY_URL%*' }).Count -gt 0) { exit 0 }; exit 1 } catch { exit 1 }" >nul 2>nul
 set "COMFY_TAB_READY=%ERRORLEVEL%"
 
+powershell.exe -NoProfile -Command "try { $null = Invoke-RestMethod -Uri 'http://127.0.0.1:%CDP_PORT%/json/version' -TimeoutSec 2; exit 0 } catch { exit 1 }" >nul 2>nul
+set "CDP_READY=%ERRORLEVEL%"
+
 if "%COMFY_TAB_READY%"=="0" echo Reusing the existing isolated Chrome window for %COMFY_URL%.
+if not "%COMFY_TAB_READY%"=="0" if not "%CDP_READY%"=="0" echo Clearing saved tabs from the dedicated Chrome profile ...
+if not "%COMFY_TAB_READY%"=="0" if not "%CDP_READY%"=="0" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%ROOT%tools\Clear-CdpChromeSession.ps1" -UserDataDir "%CHROME_PROFILE%"
+if not "%COMFY_TAB_READY%"=="0" if not "%CDP_READY%"=="0" if errorlevel 1 echo ERROR: Could not safely clear the dedicated Chrome session. Close that dedicated Chrome window and try again.
+if not "%COMFY_TAB_READY%"=="0" if not "%CDP_READY%"=="0" if errorlevel 1 exit /b 1
 if not "%COMFY_TAB_READY%"=="0" set "CHROME="
 if not "%COMFY_TAB_READY%"=="0" if exist "%ProgramFiles%\Google\Chrome\Application\chrome.exe" set "CHROME=%ProgramFiles%\Google\Chrome\Application\chrome.exe"
 if not "%COMFY_TAB_READY%"=="0" if not defined CHROME if exist "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" set "CHROME=%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe"

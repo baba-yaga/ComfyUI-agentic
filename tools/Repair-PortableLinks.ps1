@@ -33,6 +33,7 @@ $links = @(
     @{ Source = 'AGENTS.md'; Target = 'AGENTS.md' },
     @{ Source = 'run_comfyui_cdp.bat'; Target = 'run_comfyui_cdp.bat' },
     @{ Source = 'run_comfyui_cdp_server.bat'; Target = 'run_comfyui_cdp_server.bat' },
+    @{ Source = 'tools\Clear-CdpChromeSession.ps1'; Target = 'tools\Clear-CdpChromeSession.ps1' },
     @{ Source = 'tools\Invoke-CdpEvaluate.ps1'; Target = 'tools\Invoke-CdpEvaluate.ps1' },
     @{ Source = 'tools\comfy_chrome_mcp.py'; Target = 'tools\comfy_chrome_mcp.py' }
 )
