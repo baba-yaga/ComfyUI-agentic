@@ -34,7 +34,7 @@ ComfyUI_windows_portable/
     `-- comfy_chrome_mcp.py
 ```
 
-Do not copy the BAT files to the Desktop. Create a desktop shortcut to `run_comfyui_cdp.bat` instead: the launcher resolves paths from the directory where it is stored.
+Do not copy the BAT files to the Desktop. Create a desktop shortcut to `run_comfyui_cdp.bat` instead: the launcher resolves paths from the directory where it is stored. Feel free to use the icon `assets\comfyui-agentic-icon.ico` for the shortcut.
 
 ## Developing the companion alongside ComfyUI
 
