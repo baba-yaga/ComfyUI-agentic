@@ -27,8 +27,8 @@ set "COMFY_READY=%ERRORLEVEL%"
 if "%COMFY_READY%"=="0" echo ComfyUI-agentic is already running at %COMFY_URL%.
 if not "%COMFY_READY%"=="0" echo Starting ComfyUI-agentic on %COMFY_URL% ...
 if not "%COMFY_READY%"=="0" start "ComfyUI-agentic - port %COMFY_PORT%" /D "%ROOT%" "%ComSpec%" /k call "%ROOT%run_comfyui_cdp_server.bat"
-if not "%COMFY_READY%"=="0" powershell.exe -NoProfile -Command "$deadline = (Get-Date).AddSeconds(120); do { try { $null = Invoke-RestMethod -Uri '%COMFY_URL%/system_stats' -TimeoutSec 2; exit 0 } catch { Start-Sleep -Seconds 1 } } while ((Get-Date) -lt $deadline); exit 1"
-if not "%COMFY_READY%"=="0" if errorlevel 1 echo ERROR: ComfyUI did not become ready within 120 seconds. Check the ComfyUI-agentic console window for details.
+if not "%COMFY_READY%"=="0" powershell.exe -NoProfile -Command "$deadline = (Get-Date).AddSeconds(300); do { try { $null = Invoke-RestMethod -Uri '%COMFY_URL%/system_stats' -TimeoutSec 2; exit 0 } catch { Start-Sleep -Seconds 1 } } while ((Get-Date) -lt $deadline); exit 1"
+if not "%COMFY_READY%"=="0" if errorlevel 1 echo ERROR: ComfyUI did not become ready within 300 seconds. Check the ComfyUI-agentic console window for details.
 if not "%COMFY_READY%"=="0" if errorlevel 1 exit /b 1
 
 powershell.exe -NoProfile -Command "try { $tabs = @(Invoke-RestMethod -Uri 'http://127.0.0.1:%CDP_PORT%/json/list' -TimeoutSec 2); if (@($tabs | Where-Object { $_.type -eq 'page' -and $_.url -like '%COMFY_URL%*' }).Count -gt 0) { exit 0 }; exit 1 } catch { exit 1 }" >nul 2>nul

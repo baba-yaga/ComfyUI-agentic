@@ -8,7 +8,7 @@ set "ROOT_URL=%ROOT:\=/%"
 set "CODEX_DATABASE_URL=sqlite:///%ROOT_URL%ComfyUI/user/comfyui-codex-%COMFY_PORT%.db"
 
 cd /d "%ROOT%"
-"%ROOT%python_embeded\python.exe" -s "%ROOT%ComfyUI\main.py" --windows-standalone-build --port %COMFY_PORT% --database-url "%CODEX_DATABASE_URL%"
+"%ROOT%python_embeded\python.exe" -s "%ROOT%ComfyUI\main.py" --windows-standalone-build --disable-auto-launch --port %COMFY_PORT% --database-url "%CODEX_DATABASE_URL%"
 
 echo.
 echo ComfyUI stopped. Review the messages above before closing this window.
