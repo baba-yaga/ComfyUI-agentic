@@ -6,11 +6,13 @@ The launcher starts ComfyUI and a separate Chrome profile with Chrome DevTools P
 
 ## Prerequisites
 
-- Windows 10 or 11.
-- A working **portable** ComfyUI installation with `python_embeded/python.exe` and `ComfyUI/main.py`.
+- Windows 10 or 11, or macOS with Google Chrome.
+- On Windows, a working **portable** ComfyUI installation with `python_embeded/python.exe` and `ComfyUI/main.py`. On macOS, use a manual ComfyUI checkout with its `.venv` and `main.py`.
 - Google Chrome. Chrome Developer Mode does not need to be enabled manually.
 - Codex in VS Code or another Codex environment with terminal access.
 - Permission to use local ports `8189` (ComfyUI) and `9223` (CDP). Change both consistently if either is already in use.
+
+For the macOS setup and launcher, see [README-macos.md](./README-macos.md).
 
 ## Standard installation layout
 
@@ -86,6 +88,15 @@ For ordinary use, do not run `run_comfyui_cdp_server.bat` directly. It is the se
 
 ## Optional MCP server
 
-`tools/comfy_chrome_mcp.py` is a stdio MCP server exposing read-only status and workflow inspection plus explicitly requested text edits, queueing, and targeted JavaScript. It uses only Python's standard library and the included PowerShell CDP helper.
+`tools/comfy_chrome_mcp.py` is a stdio MCP server exposing read-only status and workflow inspection plus explicitly requested text edits, queueing, and targeted JavaScript. It uses Python's standard library and `websocket-client`.
 
-Configure it in your Codex client with the portable Python executable and the absolute path to `tools/comfy_chrome_mcp.py`. The default endpoints are `127.0.0.1:8189` and `127.0.0.1:9223`; set `COMFYUI_AGENTIC_COMFY_URL` and `COMFYUI_AGENTIC_CDP_URL` only when using different ports.
+Install the MCP dependency into the Python environment used to run the server:
+
+```bash
+python -m pip install -r tools/requirements-mcp.txt
+```
+
+Configure it in your Codex client with that Python executable and the absolute
+path to `tools/comfy_chrome_mcp.py`. The default endpoints are
+`127.0.0.1:8189` and `127.0.0.1:9223`; the server only accepts those loopback
+addresses.

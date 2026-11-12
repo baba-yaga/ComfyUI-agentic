@@ -2,7 +2,7 @@
 
 ## Scope and safety
 
-- This companion operates only the one local portable ComfyUI installation that contains these files (or their hard links). Do not alter any other installation unless the user explicitly names it.
+- This companion operates only the local ComfyUI installation paired with this checkout. Do not alter any other installation unless the user explicitly names it.
 - The dedicated browser is local-only: ComfyUI is `http://127.0.0.1:8189` and Chrome DevTools Protocol (CDP) is `http://127.0.0.1:9223`.
 - Control only the Chrome process that uses `.codex-chrome-profile`. Never attach to the user's regular Chrome profile, unrelated tabs, or a non-local CDP endpoint.
 - Do not close browser windows, stop ComfyUI, delete workflows, overwrite a named workflow, or remove models unless the user explicitly asks.
@@ -10,14 +10,15 @@
 
 ## Starting the environment
 
-- The user normally starts `run_comfyui_cdp.bat`; it starts the companion server script when needed and opens the dedicated Chrome window. A local installation may retain a differently named hard link for compatibility.
-- Do not instruct the user to run `run_comfyui_cdp_server.bat` directly unless diagnosing the server only.
-- Chrome DevTools does not need to be enabled manually. The main BAT starts Chrome with the required local CDP flags.
+- On Windows, the user starts `run_comfyui_cdp.bat`. On macOS, start `run_comfyui_cdp.sh` from the companion checkout paired with the ComfyUI project.
+- Do not instruct the user to run `run_comfyui_cdp_server.bat` directly unless diagnosing the Windows server only.
+- Chrome DevTools does not need to be enabled manually. The launcher starts a dedicated Chrome profile with local CDP flags.
 - Before using browser control, check `http://127.0.0.1:8189/system_stats` and `http://127.0.0.1:9223/json/list`.
 
 ## Inspect before changing
 
-- Use `tools/Invoke-CdpEvaluate.ps1` with a WebSocket URL returned by `/json/list`. Select only a `type: page` target whose URL starts with `http://127.0.0.1:8189`.
+- When the MCP tools are available, call `comfy_chrome_status` and `comfy_workflow_inspect` to inspect the live installation. The bridge only controls the dedicated Chrome profile and validates local ComfyUI targets.
+- On Windows without the MCP tools, use `tools/Invoke-CdpEvaluate.ps1` with a WebSocket URL returned by `/json/list`. Select only a `type: page` target whose URL starts with `http://127.0.0.1:8189`.
 - If several ComfyUI pages exist, identify the target by its title and ask the user to choose when the title does not make the choice clear.
 - Read the live graph, nodes, links, and widget values before proposing edits. Do not rely on workflow details from an earlier session.
 - A widget may be driven by a linked node. Follow the link upstream and modify the real source rather than an overridden downstream widget.

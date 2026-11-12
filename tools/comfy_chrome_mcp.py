@@ -1,19 +1,27 @@
 import json
 import os
-import subprocess
 import sys
 import urllib.request
-from pathlib import Path
+from urllib.parse import urlsplit
+
+import websocket
 
 
-COMFY_URL = os.environ.get("COMFYUI_AGENTIC_COMFY_URL", "http://127.0.0.1:8189")
-CDP_URL = os.environ.get("COMFYUI_AGENTIC_CDP_URL", "http://127.0.0.1:9223")
-HELPER = Path(__file__).with_name("Invoke-CdpEvaluate.ps1")
+def local_url(variable, default, port):
+    value = os.environ.get(variable, default).rstrip("/")
+    parsed = urlsplit(value)
+    if parsed.scheme != "http" or parsed.hostname != "127.0.0.1" or parsed.port != port:
+        raise RuntimeError(f"{variable} must use http://127.0.0.1:{port}.")
+    return value
+
+
+COMFY_URL = local_url("COMFYUI_AGENTIC_COMFY_URL", "http://127.0.0.1:8189", 8189)
+CDP_URL = local_url("COMFYUI_AGENTIC_CDP_URL", "http://127.0.0.1:9223", 9223)
 INSTRUCTIONS = (
     "This server controls only the dedicated local Chrome profile opened by "
-    "run_comfyui_cdp.bat. Inspect the workflow before changing it. Do not edit "
-    "nodes, queue a generation, or run arbitrary JavaScript unless the user "
-    "explicitly requested that action."
+    "run_comfyui_cdp.sh. Inspect the workflow before changing it. Do not edit "
+    "nodes, queue a generation, or run JavaScript unless the user explicitly "
+    "requested that action."
 )
 
 
@@ -29,12 +37,21 @@ def comfy_ready():
         return json.load(response)
 
 
+def is_comfy_page(target):
+    parsed = urlsplit(target.get("url", ""))
+    return (
+        target.get("type") == "page"
+        and parsed.scheme == "http"
+        and parsed.hostname == "127.0.0.1"
+        and parsed.port == 8189
+    )
+
+
 def get_tab(tab_id=None):
     pages = [
         target
         for target in http_json("/json/list")
-        if target.get("type") == "page"
-        and target.get("url", "").startswith(COMFY_URL)
+        if is_comfy_page(target)
     ]
     if tab_id:
         pages = [target for target in pages if target.get("id") == tab_id]
@@ -47,24 +64,44 @@ def get_tab(tab_id=None):
 
 def evaluate(script, tab_id=None):
     tab = get_tab(tab_id)
-    result = subprocess.run(
-        [
-            "powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
-            str(HELPER), "-WebSocketDebuggerUrl", tab["webSocketDebuggerUrl"],
-            "-Expression", script,
-        ],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
+    debugger_url = urlsplit(tab["webSocketDebuggerUrl"])
+    if (
+        debugger_url.scheme != "ws"
+        or debugger_url.hostname != "127.0.0.1"
+        or debugger_url.port != 9223
+    ):
+        raise RuntimeError("Chrome returned a non-local DevTools WebSocket URL.")
+
+    connection = websocket.create_connection(
+        tab["webSocketDebuggerUrl"],
         timeout=60,
+        origin=CDP_URL,
     )
-    if result.returncode:
-        raise RuntimeError(result.stderr.strip() or result.stdout.strip())
-    payload = json.loads(result.stdout)
-    remote_result = payload.get("result", {}).get("result", {})
+    try:
+        connection.send(json.dumps({
+            "id": 1,
+            "method": "Runtime.evaluate",
+            "params": {
+                "expression": script,
+                "awaitPromise": True,
+                "returnByValue": True,
+                "userGesture": True,
+            },
+        }))
+        while True:
+            response = json.loads(connection.recv())
+            if response.get("id") == 1:
+                if "error" in response:
+                    raise RuntimeError(response["error"].get("message", "DevTools request failed."))
+                remote_result = response.get("result", {})
+                break
+    finally:
+        connection.close()
+
     if "exceptionDetails" in remote_result:
         raise RuntimeError(remote_result["exceptionDetails"].get("text", "JavaScript failed."))
-    return remote_result.get("value", remote_result)
+    result = remote_result.get("result", {})
+    return result.get("value", result)
 
 
 def tool_result(value, is_error=False):
@@ -134,7 +171,18 @@ def call_tool(name, arguments):
     if name == "comfy_chrome_status":
         stats = comfy_ready()
         device = (stats.get("devices") or [{}])[0]
-        return {"comfy": {"url": COMFY_URL, "version": stats.get("system", {}).get("comfyui_version"), "device": device.get("name")}, "tabs": [{"id": tab.get("id"), "title": tab.get("title"), "url": tab.get("url")} for tab in http_json("/json/list") if tab.get("type") == "page" and tab.get("url", "").startswith(COMFY_URL)]}
+        return {
+            "comfy": {
+                "url": COMFY_URL,
+                "version": stats.get("system", {}).get("comfyui_version"),
+                "device": device.get("name"),
+            },
+            "tabs": [
+                {"id": tab.get("id"), "title": tab.get("title"), "url": tab.get("url")}
+                for tab in http_json("/json/list")
+                if is_comfy_page(tab)
+            ],
+        }
     if name == "comfy_workflow_inspect":
         return workflow_inspect(arguments)
     if name == "comfy_set_text":
